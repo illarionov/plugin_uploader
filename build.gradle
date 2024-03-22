@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'java-gradle-plugin'
     id 'maven-publish'
-    id "com.gradle.plugin-publish" version "0.12.0"
+    id("com.gradle.plugin-publish") version "1.2.1"
 }
 
 group 'dev.bmac.intellij.plugins'
@@ -43,7 +43,7 @@ dependencies {
 }
 
 def generatedResourcesDir = file("$buildDir/generated-resources")
-processResources {
+def generateProjectVersionTask = tasks.register("generateProjectVersion") {
     def outputFile = file("$generatedResourcesDir/project.version")
     outputs.dir(generatedResourcesDir)
     inputs.property("version", project.version)
@@ -55,29 +55,22 @@ processResources {
 sourceSets {
     main {
         resources {
-            srcDirs generatedResourcesDir
+            srcDirs files(generatedResourcesDir).builtBy(generateProjectVersionTask)
         }
     }
 }
 
 gradlePlugin {
+    vcsUrl = 'https://github.com/brian-mcnamara/plugin_uploader'
+    website = 'https://github.com/brian-mcnamara/plugin_uploader'
+
     plugins {
         pluginUploader {
             id = 'dev.bmac.intellij.plugin-uploader'
             implementationClass = 'dev.bmac.gradle.intellij.IntellijPublishPlugin'
-        }
-    }
-}
-
-pluginBundle {
-    description = 'Manages uploading and updating updatePlugins.xml for IntelliJ plugins to a private repository'
-    vcsUrl = 'https://github.com/brian-mcnamara/plugin_uploader'
-    website = 'https://github.com/brian-mcnamara/plugin_uploader'
-    tags = ['IntelliJ', "plugins", "updatePlugins.xml"]
-
-    plugins {
-        pluginUploader {
+            description = 'Manages uploading and updating updatePlugins.xml for IntelliJ plugins to a private repository'
             displayName = 'IntelliJ plugin publisher'
+            tags.set(['IntelliJ', "plugins", "updatePlugins.xml"])
         }
     }
 }
